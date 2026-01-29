@@ -32,7 +32,7 @@ public class MainApp {
         Span childSpan = tracer.spanBuilder("child-operation").startSpan();
         try {
             Thread.sleep(500);
-            String info = String.format("Hello from %d", i);
+            String info = String.format("Hello from --> %d", i);
             childSpan.setAttribute("custom.attribute", info);
         } catch (InterruptedException e) {
             childSpan.recordException(e);
