@@ -13,25 +13,27 @@ public class MainApp {
         Tracer tracer = openTelemetry.getTracer("example-tracer");
         IO.println("Hello and welcome!");
         Span span = tracer.spanBuilder("main-operation").startSpan();
+        for (int i = 1; i <= 25; i++) {
+            try (Scope scope = span.makeCurrent()) {
+                doWork(tracer,i);
+            } catch (Exception e) {
+                span.recordException(e);
+            } finally {
+                span.end();
+            }
 
-        try (Scope scope = span.makeCurrent()) {
-            doWork(tracer);
-        } catch (Exception e) {
-            span.recordException(e);
-        } finally {
-            span.end();
+            // Give exporter time to flush
+            Thread.sleep(200);
         }
-
-        // Give exporter time to flush
-        Thread.sleep(2000);
         IO.println("Goodbye!");
     }
 
-    private static void doWork(Tracer tracer) {
+    private static void doWork(Tracer tracer, int i) {
         Span childSpan = tracer.spanBuilder("child-operation").startSpan();
         try {
             Thread.sleep(500);
-            childSpan.setAttribute("custom.attribute", "find-me----------");
+            String info = String.format("Hello from %d", i);
+            childSpan.setAttribute("custom.attribute", info);
         } catch (InterruptedException e) {
             childSpan.recordException(e);
         } finally {
